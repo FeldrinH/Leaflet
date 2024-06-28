@@ -204,7 +204,9 @@ export const Marker = Layer.extend({
 	update() {
 
 		if (this._icon && this._map) {
-			const pos = this._map.latLngToLayerPoint(this._latlng).round();
+			const pos = this._map._animatingZoom ?
+				this._map._latLngToNewLayerPoint(this._latlng, this._map._animateToZoom, this._map._animateToCenter).round() :
+				this._map.latLngToLayerPoint(this._latlng).round();
 			this._setPos(pos);
 		}
 

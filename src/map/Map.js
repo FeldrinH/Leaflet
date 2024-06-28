@@ -1215,7 +1215,7 @@ export const Map = Evented.extend({
 		return this;
 	},
 
-	_move(center, zoom, data, supressEvent) {
+	_move(center, zoom, data) {
 		if (zoom === undefined) {
 			zoom = this._zoom;
 		}
@@ -1225,21 +1225,18 @@ export const Map = Evented.extend({
 		this._lastCenter = center;
 		this._pixelOrigin = this._getNewPixelOrigin(center);
 
-		if (!supressEvent) {
-			// @event zoom: Event
-			// Fired repeatedly during any change in zoom level,
-			// including zoom and fly animations.
-			if (zoomChanged || (data && data.pinch)) {	// Always fire 'zoom' if pinching because #3530
-				this.fire('zoom', data);
-			}
-
-			// @event move: Event
-			// Fired repeatedly during any movement of the map,
-			// including pan and fly animations.
-			this.fire('move', data);
-		} else if (data && data.pinch) {	// Always fire 'zoom' if pinching because #3530
+		// @event zoom: Event
+		// Fired repeatedly during any change in zoom level,
+		// including zoom and fly animations.
+		if (zoomChanged || (data && data.pinch)) {	// Always fire 'zoom' if pinching because #3530
 			this.fire('zoom', data);
 		}
+
+		// @event move: Event
+		// Fired repeatedly during any movement of the map,
+		// including pan and fly animations.
+		this.fire('move', data);
+
 		return this;
 	},
 
@@ -1712,12 +1709,6 @@ export const Map = Evented.extend({
 			noUpdate
 		});
 
-		if (!this._tempFireZoomEvent) {
-			this._tempFireZoomEvent = this._zoom !== this._animateToZoom;
-		}
-
-		this._move(this._animateToCenter, this._animateToZoom, undefined, true);
-
 		// Work around webkit not firing 'transitionend', see https://github.com/Leaflet/Leaflet/issues/3689, 2693
 		setTimeout(this._onZoomTransitionEnd.bind(this), 250);
 	},
@@ -1731,14 +1722,7 @@ export const Map = Evented.extend({
 
 		this._animatingZoom = false;
 
-		this._move(this._animateToCenter, this._animateToZoom, undefined, true);
-
-		if (this._tempFireZoomEvent) {
-			this.fire('zoom');
-		}
-		delete this._tempFireZoomEvent;
-
-		this.fire('move');
+		this._move(this._animateToCenter, this._animateToZoom);
 
 		this._moveEnd(true);
 	}
